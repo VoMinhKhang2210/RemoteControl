@@ -1,0 +1,20 @@
+=====================================
+   HƯỚNG DẪN CHẠY REMOTE AGENT
+=====================================
+
+BƯỚC 1: Mở Command Prompt hoặc PowerShell
+
+BƯỚC 2: cd vào thư mục này (chứa file RemoteAgent.exe)
+
+BƯỚC 3: Chạy lệnh sau:
+
+   RemoteAgent.exe lengthy-unslyly-rhona.ngrok-free.dev
+
+=====================================
+
+Nếu URL ngrok thay đổi, thay thế URL mới vào lệnh trên.
+
+Ví dụ:
+   RemoteAgent.exe abc123xyz.ngrok-free.app
+
+=====================================
