@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RemoteAgent")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2c1f7cac19985fd914ce279aaaecefe6fc86f527")]
 [assembly: System.Reflection.AssemblyProductAttribute("RemoteAgent")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RemoteAgent")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
