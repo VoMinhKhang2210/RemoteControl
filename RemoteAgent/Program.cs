@@ -332,31 +332,26 @@ namespace RemoteAgent
         {
             try
             {
-                // Tắt webcam bằng cách disable device qua devcon hoặc pnputil
+                // BƯỚC 1: Tìm và diệt App Camera đang mở (để tắt màn hình camera đi)
+                foreach (var process in Process.GetProcessesByName("WindowsCamera"))
+                {
+                    process.Kill();
+                }
+
+                // BƯỚC 2: Chạy lệnh Disable Driver (Cấm bật lại)
                 var psi = new ProcessStartInfo
                 {
                     FileName = "cmd.exe",
-                    Arguments = "/c powershell -Command \"$cam = Get-PnpDevice -Class Camera -Status OK; if($cam) { Disable-PnpDevice -InstanceId $cam.InstanceId -Confirm:$false } else { Write-Host 'No camera found' }\"",
+                    // Lệnh PowerShell tìm Camera và Disable nó đi
+                    Arguments = "/c powershell -Command \"$cam = Get-PnpDevice -Class Camera -Status OK; if($cam) { Disable-PnpDevice -InstanceId $cam.InstanceId -Confirm:$false }\"",
                     UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true
+                    CreateNoWindow = true,
+                    Verb = "runas" // Yêu cầu quyền Admin
                 };
-                var process = Process.Start(psi);
-                if (process != null)
-                {
-                    string output = await process.StandardOutput.ReadToEndAsync();
-                    string error = await process.StandardError.ReadToEndAsync();
-                    await process.WaitForExitAsync();
+                Process.Start(psi)?.WaitForExit();
 
-                    Console.WriteLine($"Disable webcam output: {output}");
-                    Console.WriteLine($"Disable webcam error: {error}");
-
-                    if (process.ExitCode == 0 && !output.Contains("No camera"))
-                        await SendResponse("SUCCESS", "Đã tắt webcam");
-                    else
-                        await SendResponse("ERROR", "Không thể tắt webcam. Cần chạy RemoteAgent với quyền Admin!");
-                }
+                await SendResponse("SUCCESS", "Đã đóng App và KHÓA Webcam thành công!");
+                Console.WriteLine("Đã tắt Webcam");
             }
             catch (Exception ex)
             {
@@ -368,19 +363,34 @@ namespace RemoteAgent
         {
             try
             {
-                // Thay vì bật driver, ta ra lệnh mở App Camera lên màn hình
+                // BƯỚC 1: Phải Bật Driver lên trước (vì lỡ lúc nãy bị khóa)
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "cmd.exe",
+                    // Lệnh PowerShell tìm Camera và Enable lại
+                    Arguments = "/c powershell -Command \"$cam = Get-PnpDevice -Class Camera; if($cam) { Enable-PnpDevice -InstanceId $cam.InstanceId -Confirm:$false }\"",
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    Verb = "runas"
+                };
+                Process.Start(psi)?.WaitForExit();
+
+                // Đợi 1 xíu cho Driver kịp tỉnh ngủ
+                await Task.Delay(2000);
+
+                // BƯỚC 2: Mở App Camera lên cho người dùng thấy
                 Process.Start(new ProcessStartInfo
                 {
                     FileName = "microsoft.windows.camera:",
                     UseShellExecute = true
                 });
 
-                await SendResponse("SUCCESS", "Đã mở ứng dụng Camera lên màn hình!");
-                Console.WriteLine("Đã mở app Camera");
+                await SendResponse("SUCCESS", "Đã mở khóa và bật App Camera!");
+                Console.WriteLine("Đã bật Webcam");
             }
             catch (Exception ex)
             {
-                await SendResponse("ERROR", $"Lỗi: Máy này không có App Camera hoặc bị lỗi. {ex.Message}");
+                await SendResponse("ERROR", $"Lỗi bật webcam: {ex.Message}");
             }
         }
 
