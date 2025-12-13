@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RemoteAgent")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e50c355a68d09ac3b35182a44588a554bc93e058")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+17c99a11e3cd8d1082137366d8da6afd1653a557")]
 [assembly: System.Reflection.AssemblyProductAttribute("RemoteAgent")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RemoteAgent")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
