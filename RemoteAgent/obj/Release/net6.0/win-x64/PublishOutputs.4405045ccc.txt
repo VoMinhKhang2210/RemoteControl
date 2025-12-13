@@ -1,0 +1,2 @@
+D:\hoc\MMT\RemoteControl\RemoteAgent\bin\Release\net6.0\win-x64\publish\RemoteAgent.pdb
+D:\hoc\MMT\RemoteControl\RemoteAgent\bin\Release\net6.0\win-x64\publish\RemoteAgent.exe

