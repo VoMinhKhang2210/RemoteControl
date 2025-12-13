@@ -85,3 +85,4 @@ D:\hoc\MMT\RemoteControl\WebServer\obj\Debug\net6.0\refint\WebServer.dll
 D:\hoc\MMT\RemoteControl\WebServer\obj\Debug\net6.0\WebServer.pdb
 D:\hoc\MMT\RemoteControl\WebServer\obj\Debug\net6.0\WebServer.genruntimeconfig.cache
 D:\hoc\MMT\RemoteControl\WebServer\obj\Debug\net6.0\ref\WebServer.dll
+D:\hoc\MMT\RemoteControl\WebServer\obj\Debug\net6.0\WebServer.sourcelink.json

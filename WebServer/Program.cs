@@ -18,16 +18,21 @@ var app = builder.Build();
 var agentManager = app.Services.GetRequiredService<AgentManager>();
 
 app.UseCors();
+
+// --- ĐÃ SỬA: BỎ COMMENT DÒNG NÀY ---
 app.UseWebSockets();
+// ------------------------------------
+
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
-// WebSocket endpoint for agents
+// --- ĐÃ SỬA: BỎ COMMENT KHỐI NÀY ĐỂ MỞ CỔNG CHO AGENT ---
 app.Map("/ws/agent", async context =>
 {
     if (context.WebSockets.IsWebSocketRequest)
     {
         var webSocket = await context.WebSockets.AcceptWebSocketAsync();
+        // Lưu ý: context.Connection.RemoteIpAddress có thể null nếu chạy localhost, thêm check null
         await agentManager.HandleAgentConnection(webSocket, context.Connection.RemoteIpAddress?.ToString() ?? "Unknown");
     }
     else
@@ -35,6 +40,7 @@ app.Map("/ws/agent", async context =>
         context.Response.StatusCode = 400;
     }
 });
+// ---------------------------------------------------------
 
 // API Endpoints
 app.MapGet("/api/agents", () =>
