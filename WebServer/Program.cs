@@ -155,28 +155,40 @@ public class AgentManager
         _agents[agentId] = agent;
         Console.WriteLine($"Agent kết nối: {agentId} từ {ipAddress}");
 
-        var buffer = new byte[4096];
+        // --- SỬA ĐOẠN NÀY ĐỂ NHẬN DỮ LIỆU LỚN ---
+        var buffer = new byte[1024 * 4]; // Buffer 4KB
         try
         {
             while (webSocket.State == WebSocketState.Open)
             {
-                var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-
-                if (result.MessageType == WebSocketMessageType.Close)
+                // Dùng MemoryStream để gom các mảnh dữ liệu lại
+                using (var ms = new MemoryStream())
                 {
-                    break;
-                }
+                    WebSocketReceiveResult result;
+                    do
+                    {
+                        result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                        ms.Write(buffer, 0, result.Count);
+                    } while (!result.EndOfMessage); // Lặp cho đến khi nhận hết tin nhắn
 
-                var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                    if (result.MessageType == WebSocketMessageType.Close)
+                    {
+                        break;
+                    }
 
-                // This is a response to a command
-                if (agent.CurrentCommandId != null && agent.ResponseWaiter.TryGetValue(agent.CurrentCommandId, out var tcs))
-                {
-                    tcs.TrySetResult(message);
-                    agent.CurrentCommandId = null;
+                    // Giải mã toàn bộ tin nhắn đã gom đủ
+                    var message = Encoding.UTF8.GetString(ms.ToArray());
+
+                    // Xử lý phản hồi
+                    if (agent.CurrentCommandId != null && agent.ResponseWaiter.TryGetValue(agent.CurrentCommandId, out var tcs))
+                    {
+                        tcs.TrySetResult(message);
+                        agent.CurrentCommandId = null;
+                    }
                 }
             }
         }
+        // ------------------------------------------
         catch (Exception ex)
         {
             Console.WriteLine($"Agent {agentId} lỗi: {ex.Message}");
