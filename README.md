@@ -61,12 +61,6 @@ dotnet build
 ### Bước 2: Chạy WebServer
 
 ```powershell
-dotnet run --project D:\hoc\MMT\RemoteControl\WebServer\WebServer.csproj
-```
-
-Hoặc:
-
-```powershell
 cd D:\hoc\MMT\RemoteControl\WebServer
 dotnet run
 ```
@@ -96,7 +90,11 @@ Gửi **toàn bộ folder `RemoteAgent`** cho máy cần điều khiển:
 
 ### Bước 5: Chạy RemoteAgent trên máy bị điều khiển
 
-**Cách 1: Chạy bằng dotnet (cần cài .NET SDK)**
+**Chạy bằng dotnet (cần cài .NET SDK)**
+
+### 1.Mở CMD hoặc PowerShell với quyền Run as Administrator.
+
+### 2.Di chuyển vào thư mục code và chạy lệnh:
 
 ```powershell
 cd RemoteAgent
@@ -107,21 +105,6 @@ Ví dụ:
 
 ```powershell
 dotnet run abc123xyz.ngrok-free.app
-```
-
-**Cách 2: Build thành file .exe rồi gửi (không cần cài .NET)**
-
-Trên máy bạn, chạy:
-
-```powershell
-cd D:\hoc\MMT\RemoteControl\RemoteAgent
-dotnet publish -c Release -r win-x64 --self-contained true -o ./publish
-```
-
-Gửi folder `RemoteAgent/publish/` cho máy bị điều khiển, chạy:
-
-```powershell
-RemoteAgent.exe abc123xyz.ngrok-free.app
 ```
 
 ---
@@ -212,4 +195,6 @@ Việc truy cập trái phép vào máy tính của người khác là vi phạm
 
 ## 👨‍💻 Tác giả
 
-Đồ án học tập - Lập trình mạng với Socket
+Võ Minh Khang-24120336
+Vũ Đức Trung-24120479
+Nguyễn Hồng Quang-24120220
