@@ -368,35 +368,19 @@ namespace RemoteAgent
         {
             try
             {
-                // Bật webcam bằng cách enable device
-                var psi = new ProcessStartInfo
+                // Thay vì bật driver, ta ra lệnh mở App Camera lên màn hình
+                Process.Start(new ProcessStartInfo
                 {
-                    FileName = "cmd.exe",
-                    Arguments = "/c powershell -Command \"$cam = Get-PnpDevice -Class Camera; if($cam) { Enable-PnpDevice -InstanceId $cam.InstanceId -Confirm:$false } else { Write-Host 'No camera found' }\"",
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true
-                };
-                var process = Process.Start(psi);
-                if (process != null)
-                {
-                    string output = await process.StandardOutput.ReadToEndAsync();
-                    string error = await process.StandardError.ReadToEndAsync();
-                    await process.WaitForExitAsync();
+                    FileName = "microsoft.windows.camera:",
+                    UseShellExecute = true
+                });
 
-                    Console.WriteLine($"Enable webcam output: {output}");
-                    Console.WriteLine($"Enable webcam error: {error}");
-
-                    if (process.ExitCode == 0 && !output.Contains("No camera"))
-                        await SendResponse("SUCCESS", "Đã bật webcam");
-                    else
-                        await SendResponse("ERROR", "Không thể bật webcam. Cần chạy RemoteAgent với quyền Admin!");
-                }
+                await SendResponse("SUCCESS", "Đã mở ứng dụng Camera lên màn hình!");
+                Console.WriteLine("Đã mở app Camera");
             }
             catch (Exception ex)
             {
-                await SendResponse("ERROR", $"Lỗi bật webcam: {ex.Message}");
+                await SendResponse("ERROR", $"Lỗi: Máy này không có App Camera hoặc bị lỗi. {ex.Message}");
             }
         }
 
