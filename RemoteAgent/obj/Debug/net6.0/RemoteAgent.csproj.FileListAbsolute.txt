@@ -37,3 +37,26 @@ C:\Users\Võ Minh Khang\Downloads\RemoteControl\RemoteAgent\bin\Debug\net6.0\Sys
 C:\Users\Võ Minh Khang\Downloads\RemoteControl\RemoteAgent\bin\Debug\net6.0\runtimes\win\lib\net6.0\Microsoft.Win32.SystemEvents.dll
 C:\Users\Võ Minh Khang\Downloads\RemoteControl\RemoteAgent\bin\Debug\net6.0\runtimes\unix\lib\net6.0\System.Drawing.Common.dll
 C:\Users\Võ Minh Khang\Downloads\RemoteControl\RemoteAgent\bin\Debug\net6.0\runtimes\win\lib\net6.0\System.Drawing.Common.dll
+D:\hoc\MMT\RemoteControl\RemoteAgent\bin\Debug\net6.0\RemoteAgent.exe
+D:\hoc\MMT\RemoteControl\RemoteAgent\bin\Debug\net6.0\RemoteAgent.deps.json
+D:\hoc\MMT\RemoteControl\RemoteAgent\bin\Debug\net6.0\RemoteAgent.runtimeconfig.json
+D:\hoc\MMT\RemoteControl\RemoteAgent\bin\Debug\net6.0\RemoteAgent.dll
+D:\hoc\MMT\RemoteControl\RemoteAgent\bin\Debug\net6.0\RemoteAgent.pdb
+D:\hoc\MMT\RemoteControl\RemoteAgent\bin\Debug\net6.0\Microsoft.Win32.SystemEvents.dll
+D:\hoc\MMT\RemoteControl\RemoteAgent\bin\Debug\net6.0\Newtonsoft.Json.dll
+D:\hoc\MMT\RemoteControl\RemoteAgent\bin\Debug\net6.0\System.Drawing.Common.dll
+D:\hoc\MMT\RemoteControl\RemoteAgent\bin\Debug\net6.0\runtimes\win\lib\net6.0\Microsoft.Win32.SystemEvents.dll
+D:\hoc\MMT\RemoteControl\RemoteAgent\bin\Debug\net6.0\runtimes\unix\lib\net6.0\System.Drawing.Common.dll
+D:\hoc\MMT\RemoteControl\RemoteAgent\bin\Debug\net6.0\runtimes\win\lib\net6.0\System.Drawing.Common.dll
+D:\hoc\MMT\RemoteControl\RemoteAgent\obj\Debug\net6.0\RemoteAgent.csproj.AssemblyReference.cache
+D:\hoc\MMT\RemoteControl\RemoteAgent\obj\Debug\net6.0\RemoteAgent.GeneratedMSBuildEditorConfig.editorconfig
+D:\hoc\MMT\RemoteControl\RemoteAgent\obj\Debug\net6.0\RemoteAgent.AssemblyInfoInputs.cache
+D:\hoc\MMT\RemoteControl\RemoteAgent\obj\Debug\net6.0\RemoteAgent.AssemblyInfo.cs
+D:\hoc\MMT\RemoteControl\RemoteAgent\obj\Debug\net6.0\RemoteAgent.csproj.CoreCompileInputs.cache
+D:\hoc\MMT\RemoteControl\RemoteAgent\obj\Debug\net6.0\RemoteAgent.sourcelink.json
+D:\hoc\MMT\RemoteControl\RemoteAgent\obj\Debug\net6.0\RemoteAg.22170F75.Up2Date
+D:\hoc\MMT\RemoteControl\RemoteAgent\obj\Debug\net6.0\RemoteAgent.dll
+D:\hoc\MMT\RemoteControl\RemoteAgent\obj\Debug\net6.0\refint\RemoteAgent.dll
+D:\hoc\MMT\RemoteControl\RemoteAgent\obj\Debug\net6.0\RemoteAgent.pdb
+D:\hoc\MMT\RemoteControl\RemoteAgent\obj\Debug\net6.0\RemoteAgent.genruntimeconfig.cache
+D:\hoc\MMT\RemoteControl\RemoteAgent\obj\Debug\net6.0\ref\RemoteAgent.dll
