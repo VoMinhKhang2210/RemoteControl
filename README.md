@@ -1,3 +1,8 @@
+## 👨‍💻 Tác giả
+
+Võ Minh Khang-24120336
+Vũ Đức Trung-24120479
+Nguyễn Hồng Quang-24120220
 # 🖥️ Remote Control - Ứng dụng điều khiển máy tính từ xa
 
 ## 📖 Giới thiệu
@@ -193,8 +198,3 @@ dotnet run abc123xyz.ngrok-free.app
 
 Việc truy cập trái phép vào máy tính của người khác là vi phạm pháp luật.
 
-## 👨‍💻 Tác giả
-
-Võ Minh Khang-24120336
-Vũ Đức Trung-24120479
-Nguyễn Hồng Quang-24120220
