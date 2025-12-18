@@ -85,7 +85,8 @@ RemoteControl/
         cd D:\hoc\MMT\RemoteControl\RemoteAgent
         dotnet publish -c Release
 
-    3.Lấy hàng: Truy cập vào thư mục sau để lấy file: RemoteAgent\bin\Release\net6.0\win-x64\publish\ 👉 Bạn sẽ thấy file RemoteAgent.exe (Dung lượng khoảng ~60MB).
+    3.Lấy hàng: Truy cập vào thư mục sau để lấy file: RemoteAgent\bin\Release\net6.0\win-x64\publish\ 
+    👉 Bạn sẽ thấy file RemoteAgent.exe (Dung lượng khoảng ~60MB).
 ### 📍 Bước 3: Tấn công (Trên máy nạn nhân)
 
    1. **Copy đường dẫn thư mục:** Vào thư mục chứa file `RemoteAgent.exe`, bấm vào thanh địa chỉ ở trên cùng và copy đường dẫn.
