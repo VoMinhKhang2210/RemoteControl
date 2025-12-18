@@ -1,0 +1,9 @@
+# Bỏ qua thư mục build
+bin/
+obj/
+
+# Bỏ qua cấu hình cá nhân
+.vs/
+.vscode/
+*.user
+*.suo
