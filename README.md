@@ -41,67 +41,6 @@ RemoteControl/
 └── RemoteControl.sln            # Solution file
 ```
 
-## 💻 Yêu cầu hệ thống
-
-### 1. Máy Điều Khiển (Hacker/Admin)
-- Cài đặt **.NET 6.0 SDK** trở lên (để build code).
-- Cài đặt **ngrok** (để public server ra Internet).
-
-### 2. Máy Bị Điều Khiển (Victim)
-- **Hệ điều hành:** Windows 10/11 (64-bit).
-- **Môi trường:** **KHÔNG YÊU CẦU** (Không cần cài .NET vì đã tích hợp sẵn).
-- **Mạng:** Có kết nối Internet.
-
-## 🚀 QUY TRÌNH SỬ DỤNG (3 BƯỚC)
-
-### 📍 Bước 1: Khởi động Server (Trên máy bạn)
-
-1. **Chạy WebServer:**
-   Mở Terminal tại thư mục `WebServer` và chạy:
-   ```powershell
-   cd D:\hoc\MMT\RemoteControl\WebServer
-   dotnet run
-## 🎮 ĐIỀU KHIỂN
-
-Chào Khang, mình đã cập nhật lại toàn bộ file README.md của bạn.
-
-Phiên bản này đã được chỉnh sửa để khớp hoàn toàn với tính năng Self-Contained (Chạy ngay không cần cài đặt) mà chúng ta vừa cấu hình. Nó chuyên nghiệp hơn và đúng chất đồ án môn Mạng Máy Tính.
-
-Bạn chỉ cần Copy toàn bộ nội dung bên dưới và dán đè vào file README.md hiện tại là xong nhé!
-
-📄 File: README.md (Đã hoàn thiện)
-Markdown
-
-## 👨‍💻 Tác giả
-
-Võ Minh Khang-24120336
-Vũ Đức Trung-24120479
-Nguyễn Hồng Quang-24120220
-
-# 🖥️ Remote Control - Ứng dụng điều khiển máy tính từ xa (Portable Version)
-
-## 📖 Giới thiệu
-
-Ứng dụng điều khiển máy tính từ xa qua giao diện web hiện đại, hỗ trợ điều khiển qua Internet thông qua ngrok.
-**Điểm nổi bật:** Phiên bản Agent đã được đóng gói sẵn (Self-Contained), chạy ngay trên máy nạn nhân mà **KHÔNG CẦN CÀI ĐẶT .NET**.
-
-## ✨ Chức năng
-
-| #   | Chức năng               | Mô tả                                                     |
-| --- | ----------------------- | --------------------------------------------------------- |
-| 1   | 📱 **Quản lý ứng dụng** | Xem, khởi động, dừng các ứng dụng đang chạy               |
-| 2   | ⚙️ **Task Manager** | Xem tất cả processes, tìm kiếm, kill process              |
-| 3   | ⚡ **Quick Launch** | Mở nhanh các ứng dụng phổ biến (Notepad, Chrome, Word...) |
-| 4   | 🔌 **Shutdown** | Tắt máy tính từ xa                                        |
-| 5   | 🔄 **Restart** | Khởi động lại máy tính từ xa                              |
-| 6   | 📷 **Webcam Control** | Tắt/Bật webcam trên máy bị điều khiển                     |
-| 7   | 🖼️ **Screenshot** | Chụp màn hình từ xa, tải xuống ảnh                        |
-| 8   | ⌨️ **Keylogger** | Ghi lại các phím được nhấn (có auto-refresh)              |
-
-## 📁 Cấu trúc Project
-
-RemoteControl/ ├── WebServer/ # Server điều khiển (Chạy trên máy Admin) │ ├── Program.cs # API & WebSocket server │ └── wwwroot/ # Giao diện Web │ ├── RemoteAgent/ # Agent (Chạy trên máy Nạn nhân) │ └── Program.cs # WebSocket client (Đã cấu hình đóng gói) │ └── RemoteControl.sln # Solution file
-
 
 ## 💻 Yêu cầu hệ thống
 
