@@ -82,8 +82,7 @@ RemoteControl/
 
     PowerShell:
 
-        cd D:\hoc\MMT\RemoteControl\RemoteAgent
-        dotnet publish -c Release
+        dotnet publish -c Release -r win-x64 --self-contained
 
     3.Lấy hàng: Truy cập vào thư mục sau để lấy file: RemoteAgent\bin\Release\net6.0\win-x64\publish\ 
     👉 Bạn sẽ thấy file RemoteAgent.exe (Dung lượng khoảng ~60MB).
