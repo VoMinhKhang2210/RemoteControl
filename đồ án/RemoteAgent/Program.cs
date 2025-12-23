@@ -146,47 +146,19 @@ namespace RemoteAgent
         }
 
         // --- CÁC HÀM XỬ LÝ LỆNH (Webcam, Process...) ---
-        // Tìm hàm ListApplications cũ và thay bằng hàm này
         static async Task ListApplications()
         {
             var apps = new List<object>();
-            // Lấy snapshot các process một lần để tối ưu hiệu năng
-            var processes = Process.GetProcesses();
-
-            foreach (var process in processes)
+            foreach (var process in Process.GetProcesses())
             {
                 try
                 {
-                    // SỬA 1: Chỉ lấy process có cửa sổ (MainWindowHandle != 0)
-                    // Thay vì chỉ check Title, ta check Handle sẽ chính xác hơn với Calculator/UWP
-                    if (process.MainWindowHandle != IntPtr.Zero)
+                    if (!string.IsNullOrEmpty(process.MainWindowTitle))
                     {
-                        string title = process.MainWindowTitle;
-                        string name = process.ProcessName;
-
-                        // SỬA 2: Nếu Title rỗng (bệnh của Calculator), lấy tạm tên Process làm Title
-                        if (string.IsNullOrEmpty(title))
-                        {
-                            title = name;
-                        }
-
-                        // SỬA 3: Bỏ qua các process hệ thống ồn ào để giảm dung lượng JSON (Tránh Timeout)
-                        // Ví dụ: TextInputHost, SystemSettings...
-                        if (name == "TextInputHost" || name == "SearchHost") continue;
-
-                        apps.Add(new
-                        {
-                            Name = name,
-                            Title = title,
-                            Id = process.Id,
-                            Memory = process.WorkingSet64 / 1024 / 1024
-                        });
+                        apps.Add(new { Name = process.ProcessName, Title = process.MainWindowTitle, Id = process.Id, Memory = process.WorkingSet64 / 1024 / 1024 });
                     }
                 }
-                catch
-                {
-                    // Bỏ qua lỗi truy cập (Access Denied)
-                }
+                catch { }
             }
             await SendResponse("APPS", JsonConvert.SerializeObject(apps));
         }

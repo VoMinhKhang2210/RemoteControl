@@ -238,14 +238,17 @@ public class AgentManager
 
         try
         {
-            // ... (code gửi lệnh giữ nguyên)
+            var commandId = Guid.NewGuid().ToString("N")[..8];
+            var tcs = new TaskCompletionSource<string>();
+            agent.ResponseWaiter[commandId] = tcs;
+            agent.CurrentCommandId = commandId;
+
+            // Send command
             var bytes = Encoding.UTF8.GetBytes(command);
             await agent.WebSocket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
 
-            // --- SỬA Ở ĐÂY ---
-            // Tăng timeout từ 10000 (10s) lên 30000 (30s) hoặc 60000 (60s)
-            var timeoutTask = Task.Delay(30000);
-
+            // Wait for response with timeout (10 seconds)
+            var timeoutTask = Task.Delay(10000);
             var completedTask = await Task.WhenAny(tcs.Task, timeoutTask);
 
             agent.ResponseWaiter.TryRemove(commandId, out _);
